@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const AdmZip = require('adm-zip');
 
 /**
  * Slack Export Parser Service
@@ -7,6 +8,58 @@ const path = require('path');
  */
 
 const slackParser = {
+    /**
+     * Parse Slack export ZIP in-memory
+     * @param {string} zipFilePath - Path to the ZIP file
+     * @returns {Promise<Array>} Array of normalized message objects
+     */
+    parseSlackExportInMemory: async (zipFilePath) => {
+        const messages = [];
+        try {
+            const zip = new AdmZip(zipFilePath);
+            const zipEntries = zip.getEntries();
+
+            for (const entry of zipEntries) {
+                // Skip directories and non-JSON files
+                if (entry.isDirectory || !entry.entryName.endsWith('.json')) {
+                    continue;
+                }
+
+                // Check if it's a message file (usually inside a folder named after channel)
+                // e.g. "general/2021-01-01.json"
+                const parts = entry.entryName.split('/');
+                if (parts.length !== 2) {
+                    continue; // Skip root files like channels.json, users.json for now
+                }
+
+                const channelName = parts[0];
+                const fileName = parts[1];
+
+                try {
+                    const fileContent = entry.getData().toString('utf8');
+                    const rawMessages = JSON.parse(fileContent);
+
+                    if (!Array.isArray(rawMessages)) continue;
+
+                    for (const rawMsg of rawMessages) {
+                        const normalized = slackParser.normalizeMessage(rawMsg, channelName);
+                        if (normalized) {
+                            messages.push(normalized);
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`[SlackParser] Failed to parse ${entry.entryName}: ${err.message}`);
+                }
+            }
+
+            console.log(`[SlackParser] Parsed ${messages.length} messages in-memory`);
+            return messages;
+
+        } catch (error) {
+            console.error('[SlackParser] In-memory parse error:', error);
+            throw error;
+        }
+    },
     /**
      * Parse extracted Slack export directory
      * @param {string} extractedPath - Path to extracted ZIP contents

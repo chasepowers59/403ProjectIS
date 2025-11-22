@@ -28,4 +28,15 @@ router.get('/messages/:channel', slackController.getMessages);
 // GET /slack/search - Search messages across all channels (last 30 days)
 router.get('/search', slackController.searchMessages);
 
+// POST /slack/ai-extract - Extract events from messages using AI
+router.post('/ai-extract', express.json(), slackController.extractEvents);
+
+// POST /slack/ai-summary - Generate summary of messages
+router.post('/ai-summary', express.json(), slackController.generateSummary);
+
+// POST /slack/scan - Scan root for newest ZIP and process
+router.post('/scan', slackController.scanAndProcessLatest);
+
+
+
 module.exports = router;

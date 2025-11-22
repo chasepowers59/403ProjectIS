@@ -1,0 +1,46 @@
+{
+  "summary": "Recent discussions include project assignments, meeting notes, and technology updates. Activity is concentrated in the general and random channels, with a notable focus on deadlines and project timelines.",
+  "top_users": [
+    "U123ABC",
+    "U456DEF",
+    "U789GHI"
+  ],
+  "top_keywords": [
+    "assignment",
+    "meeting",
+    "project",
+    "JavaScript"
+  ],
+  "events": [
+    {
+      "timestamp": "2025-11-22T02:11:57.236Z",
+      "user": "U123ABC",
+      "channel": "general",
+      "text": "Hello everyone! This is a recent message."
+    },
+    {
+      "timestamp": "2025-11-17T02:11:57.236Z",
+      "user": "U456DEF",
+      "channel": "general",
+      "text": "Assignment due next week - please submit on Canvas"
+    },
+    {
+      "timestamp": "2025-11-15T02:11:57.236Z",
+      "user": "U123ABC",
+      "channel": "random",
+      "text": "Random chat message from last week"
+    },
+    {
+      "timestamp": "2025-11-20T02:11:57.236Z",
+      "user": "U456DEF",
+      "channel": "random",
+      "text": "Meeting notes: discussed project timeline"
+    },
+    {
+      "timestamp": "2025-11-21T02:11:57.236Z",
+      "user": "U789GHI",
+      "channel": "tech-talk",
+      "text": "Check out this new JavaScript framework!"
+    }
+  ]
+}

@@ -37,6 +37,40 @@
                 <button id="syncBtn" class="btn-antigravity" onclick="syncData()">
                     🚀 Sync Now
                 </button>
+                <button id="scanBtn" class="btn-outline-antigravity" onclick="scanLocalZip()">
+                    📂 Scan Local ZIP
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Analysis Panel -->
+        <div class="glass-card-static mb-4" id="analysisPanel" style="display: none; padding: 2rem;">
+            <h3 class="card-title-glow mb-3">🧠 Slack Activity Analyzer</h3>
+            <div class="row">
+                <div class="col-md-8">
+                    <h5 style="color: var(--neon-cyan);">Summary</h5>
+                    <p id="analysisSummary" style="color: var(--text-primary);">Loading...</p>
+
+                    <h5 class="mt-4" style="color: var(--neon-cyan);">Recent Events</h5>
+                    <div id="eventsTimeline" class="list-group"></div>
+                </div>
+                <div class="col-md-4">
+                    <h5 style="color: var(--neon-cyan);">Top Users</h5>
+                    <ul id="topUsersList" class="list-group mb-4"></ul>
+
+                    <h5 style="color: var(--neon-cyan);">Keywords</h5>
+                    <div id="topKeywordsList" class="d-flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Control -->
+        <div class="d-flex justify-content-end mb-4">
+            <button id="analyzeBtn" class="btn-antigravity" onclick="runAnalysis()">
+                🧠 Run Slack Analysis
+            </button>
+            <div id="analysisLoading" style="display: none; margin-left: 1rem; color: var(--neon-cyan);">
+                Analyzing...
             </div>
         </div>
 
@@ -51,38 +85,28 @@
             <% events.forEach((event, index)=> { %>
                 <div class="col-md-4 mb-4">
                     <div class="glass-card event-card h-100" style="--card-index: <%= index %>; padding: 1.5rem;">
-                        <div class="mb-3">
-                            <h5 class="card-title-glow" style="font-size: 1.25rem; margin-bottom: 0.75rem;">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0" style="color: var(--neon-cyan); font-weight: 600;">
                                 <%= event.title %>
                             </h5>
-                            <h6 class="text-muted-antigravity" style="font-size: 0.9rem; font-weight: 400;">
-                                🕒 <%= new Date(event.start_time).toLocaleString() %>
-                            </h6>
+                            <span
+                                class="badge bg-<%= event.status === 'approved' ? 'success' : event.status === 'rejected' ? 'danger' : 'warning' %>">
+                                <%= event.status %>
+                            </span>
                         </div>
-                        <div class="mb-3">
-                            <p style="margin-bottom: 0.5rem; color: var(--text-secondary);">
-                                <strong style="color: var(--text-primary);">Channel:</strong>
-                                <%= event.source_channel || 'N/A' %>
-                            </p>
-                            <div>
-                                <strong style="color: var(--text-primary);">Status:</strong>
-                                <span
-                                    class="badge-antigravity <%= event.status === 'approved' ? 'badge-success-antigravity' : (event.status === 'pending' ? 'badge-warning-antigravity' : 'badge-secondary-antigravity') %>">
-                                    <%= event.status %>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-end gap-2 mt-auto">
+                        <p class="card-text mb-2" style="color: var(--text-primary);">
+                            <strong>Date:</strong>
+                            <%= new Date(event.start_time).toLocaleString() %>
+                        </p>
+                        <p class="card-text mb-3" style="color: var(--text-muted);">
+                            <strong>Channel:</strong>
+                            <%= event.source_channel || 'N/A' %>
+                        </p>
+                        <div class="d-flex justify-content-end">
                             <button class="btn-outline-antigravity btn-sm" data-bs-toggle="modal"
-                                data-bs-target="#editEventModal<%= event.event_id %>"
-                                style="padding: 0.4rem 1rem; font-size: 0.875rem;">
+                                data-bs-target="#editEventModal<%= event.event_id %>">
                                 Edit
                             </button>
-                            <form action="/events/delete/<%= event.event_id %>" method="POST"
-                                onsubmit="return confirm('Are you sure?')" style="margin: 0;">
-                                <button type="submit" class="btn-danger-antigravity btn-sm"
-                                    style="padding: 0.4rem 1rem; font-size: 0.875rem;">Delete</button>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -119,94 +143,413 @@
                     <div class="modal-footer-antigravity">
                         <button type="button" class="btn-outline-antigravity" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn-antigravity">Create Event</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+                        <%- include('partials/header') %>
 
-    <!-- Edit Modals (Moved outside of glass-card loop to avoid z-index issues) -->
-    <% events.forEach((event)=> { %>
-        <div class="modal fade" id="editEventModal<%= event.event_id %>" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content modal-content-antigravity">
-                    <form action="/events/update/<%= event.event_id %>" method="POST">
-                        <div class="modal-header-antigravity">
-                            <h5 class="modal-title-antigravity">Edit Event</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body-antigravity">
-                            <div class="mb-3">
-                                <label class="form-label"
-                                    style="color: var(--text-primary); font-weight: 500;">Title</label>
-                                <input type="text" name="title" class="form-control-antigravity"
-                                    value="<%= event.title %>" required>
+                            <nav class="navbar navbar-expand-lg navbar-antigravity mb-4">
+                                <div class="container">
+                                    <a class="navbar-brand" href="/dashboard">⚡ ANTI-GRAVITY</a>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <form class="d-flex" action="/search" method="GET">
+                                            <input class="form-control-antigravity me-2" type="search" name="q"
+                                                placeholder="Search events..." value="<%= searchQuery || '' %>"
+                                                style="min-width: 200px;">
+                                            <button class="btn-outline-antigravity" type="submit">Search</button>
+                                        </form>
+                                        <span class="navbar-text text-muted-antigravity">
+                                            Hello, <strong style="color: var(--neon-cyan);">
+                                                <%= user.name %>
+                                            </strong>
+                                        </span>
+                                        <a href="/logout" class="btn-outline-antigravity">Logout</a>
+                                    </div>
+                                </div>
+                            </nav>
+
+                            <div class="container">
+                                <!-- Sync Controls -->
+                                <div class="glass-card-static sync-container mb-4" style="padding: 2rem;">
+                                    <h5 class="card-title-glow mb-3">⚡ Sync Data</h5>
+                                    <div class="d-flex gap-3 flex-wrap align-items-center">
+                                        <select id="syncChannelSelect" class="form-select-antigravity"
+                                            style="max-width: 350px;">
+                                            <option value="">All Channels (Slow)</option>
+                                            <% if (typeof channels !=='undefined' && channels && channels.length> 0) {
+                                                %>
+                                                <% channels.forEach(channel=> { %>
+                                                    <option value="<%= channel.id %>">
+                                                        <%= channel.name %>
+                                                    </option>
+                                                    <% }); %>
+                                                        <% } %>
+                                        </select>
+                                        <button id="syncBtn" class="btn-antigravity" onclick="syncData()">
+                                            🚀 Sync Now
+                                        </button>
+                                        <button id="scanBtn" class="btn-outline-antigravity" onclick="scanLocalZip()">
+                                            📂 Scan Local ZIP
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- AI Analysis Panel -->
+                                <div class="glass-card-static mb-4" id="analysisPanel"
+                                    style="display: none; padding: 2rem;">
+                                    <h3 class="card-title-glow mb-3">🧠 Slack Activity Analyzer</h3>
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <h5 style="color: var(--neon-cyan);">Summary</h5>
+                                            <p id="analysisSummary" style="color: var(--text-primary);">Loading...</p>
+
+                                            <h5 class="mt-4" style="color: var(--neon-cyan);">Recent Events</h5>
+                                            <div id="eventsTimeline" class="list-group"></div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h5 style="color: var(--neon-cyan);">Top Users</h5>
+                                            <ul id="topUsersList" class="list-group mb-4"></ul>
+
+                                            <h5 style="color: var(--neon-cyan);">Keywords</h5>
+                                            <div id="topKeywordsList" class="d-flex flex-wrap gap-2"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Analysis Control -->
+                                <div class="d-flex justify-content-end mb-4">
+                                    <button id="analyzeBtn" class="btn-antigravity" onclick="runAnalysis()">
+                                        🧠 Run Slack Analysis
+                                    </button>
+                                    <div id="analysisLoading"
+                                        style="display: none; margin-left: 1rem; color: var(--neon-cyan);">
+                                        Analyzing...
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h2 style="font-size: 2rem; font-weight: 700;">📅 Events</h2>
+                                    <button class="btn-antigravity" data-bs-toggle="modal"
+                                        data-bs-target="#addEventModal">
+                                        + Add Event
+                                    </button>
+                                </div>
+
+                                <div class="row">
+                                    <% events.forEach((event, index)=> { %>
+                                        <div class="col-md-4 mb-4">
+                                            <div class="glass-card event-card h-100"
+                                                style="--card-index: <%= index %>; padding: 1.5rem;">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h5 class="card-title mb-0"
+                                                        style="color: var(--neon-cyan); font-weight: 600;">
+                                                        <%= event.title %>
+                                                    </h5>
+                                                    <span
+                                                        class="badge bg-<%= event.status === 'approved' ? 'success' : event.status === 'rejected' ? 'danger' : 'warning' %>">
+                                                        <%= event.status %>
+                                                    </span>
+                                                </div>
+                                                <p class="card-text mb-2" style="color: var(--text-primary);">
+                                                    <strong>Date:</strong>
+                                                    <%= new Date(event.start_time).toLocaleString() %>
+                                                </p>
+                                                <p class="card-text mb-3" style="color: var(--text-muted);">
+                                                    <strong>Channel:</strong>
+                                                    <%= event.source_channel || 'N/A' %>
+                                                </p>
+                                                <div class="d-flex justify-content-end">
+                                                    <button class="btn-outline-antigravity btn-sm"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editEventModal<%= event.event_id %>">
+                                                        Edit
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <% }) %>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label"
-                                    style="color: var(--text-primary); font-weight: 500;">Date</label>
-                                <input type="datetime-local" name="start_time" class="form-control-antigravity"
-                                    value="<%= new Date(event.start_time).toISOString().slice(0, 16) %>" required>
+
+                            <!-- Add Event Modal -->
+                            <div class="modal fade" id="addEventModal" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content modal-content-antigravity">
+                                        <form action="/events" method="POST">
+                                            <div class="modal-header-antigravity">
+                                                <h5 class="modal-title-antigravity">Add New Event</h5>
+                                                <button type="button" class="btn-close btn-close-white"
+                                                    data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body-antigravity">
+                                                <div class="mb-3">
+                                                    <label class="form-label"
+                                                        style="color: var(--text-primary); font-weight: 500;">Title</label>
+                                                    <input type="text" name="title" class="form-control-antigravity"
+                                                        required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"
+                                                        style="color: var(--text-primary); font-weight: 500;">Date</label>
+                                                    <input type="datetime-local" name="start_time"
+                                                        class="form-control-antigravity" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"
+                                                        style="color: var(--text-primary); font-weight: 500;">Source
+                                                        Channel</label>
+                                                    <input type="text" name="source_channel"
+                                                        class="form-control-antigravity" placeholder="e.g. #general">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer-antigravity">
+                                                <button type="button" class="btn-outline-antigravity"
+                                                    data-bs-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn-antigravity">Create Event</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label"
-                                    style="color: var(--text-primary); font-weight: 500;">Status</label>
-                                <select name="status" class="form-select-antigravity">
-                                    <option value="pending" <%=event.status==='pending' ? 'selected' : '' %>>Pending
-                                    </option>
-                                    <option value="approved" <%=event.status==='approved' ? 'selected' : '' %>>Approved
-                                    </option>
-                                    <option value="rejected" <%=event.status==='rejected' ? 'selected' : '' %>>Rejected
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="modal-footer-antigravity">
-                            <button type="button" class="btn-outline-antigravity" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn-antigravity">Save changes</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <% }) %>
 
-            <script>
-                async function syncData() {
-                    const btn = document.getElementById('syncBtn');
-                    const select = document.getElementById('syncChannelSelect');
-                    const channelId = select.value;
-                    const channelName = select.options[select.selectedIndex].text;
+                            <!-- Edit Modals -->
+                            <% events.forEach((event)=> { %>
+                                <div class="modal fade" id="editEventModal<%= event.event_id %>" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content modal-content-antigravity">
+                                            <form action="/events/update/<%= event.event_id %>" method="POST">
+                                                <div class="modal-header-antigravity">
+                                                    <h5 class="modal-title-antigravity">Edit Event</h5>
+                                                    <button type="button" class="btn-close btn-close-white"
+                                                        data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body-antigravity">
+                                                    <div class="mb-3">
+                                                        <label class="form-label"
+                                                            style="color: var(--text-primary); font-weight: 500;">Title</label>
+                                                        <input type="text" name="title" class="form-control-antigravity"
+                                                            value="<%= event.title %>" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label"
+                                                            style="color: var(--text-primary); font-weight: 500;">Date</label>
+                                                        <input type="datetime-local" name="start_time"
+                                                            class="form-control-antigravity"
+                                                            value="<%= new Date(event.start_time).toISOString().slice(0, 16) %>"
+                                                            required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label"
+                                                            style="color: var(--text-primary); font-weight: 500;">Status</label>
+                                                        <select name="status" class="form-select-antigravity">
+                                                            <option value="pending" <%=event.status==='pending'
+                                                                ? 'selected' : '' %>>Pending
+                                                            </option>
+                                                            <option value="approved" <%=event.status==='approved'
+                                                                ? 'selected' : '' %>>Approved
+                                                            </option>
+                                                            <option value="rejected" <%=event.status==='rejected'
+                                                                ? 'selected' : '' %>>Rejected
+                                                            </option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer-antigravity">
+                                                    <button type="button" class="btn-outline-antigravity"
+                                                        data-bs-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn-antigravity">Save changes</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% }) %>
 
-                    btn.disabled = true;
-                    btn.innerText = `🔄 Syncing ${channelName}...`;
+                                    <script>
+                                        async function handleFetchResponse(response) {
+                                            if (response.redirected) {
+                                                window.location.href = response.url;
+                                                return null;
+                                            }
 
-                    try {
-                        const response = await fetch('/refresh-data', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ channelId })
-                        });
+                                            const contentType = response.headers.get("content-type");
+                                            if (contentType && contentType.indexOf("application/json") === -1) {
+                                                const text = await response.text();
+                                                if (text.includes("<!DOCTYPE html>")) {
+                                                    window.location.reload();
+                                                    return null;
+                                                }
+                                                throw new Error("Server returned non-JSON response: " + text.substring(0, 100));
+                                            }
 
-                        const result = await response.json();
-                        if (result.success) {
-                            window.location.reload();
-                        } else {
-                            alert('Sync failed: ' + (result.error || 'Unknown error'));
-                            btn.disabled = false;
-                            btn.innerText = '🚀 Sync Now';
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        alert('Sync failed: ' + err.message);
-                        btn.disabled = false;
-                        btn.innerText = '🚀 Sync Now';
-                    }
-                }
-            </script>
+                                            return await response.json();
+                                        }
 
-            </body>
+                                        async function syncData() {
+                                            const btn = document.getElementById('syncBtn');
+                                            const select = document.getElementById('syncChannelSelect');
+                                            const channelId = select.value;
+                                            const channelName = select.options[select.selectedIndex].text;
 
-            </html>
+                                            btn.disabled = true;
+                                            btn.innerText = `🔄 Syncing ${channelName}...`;
+
+                                            try {
+                                                const response = await fetch('/refresh-data', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json'
+                                                    },
+                                                    body: JSON.stringify({ channelId })
+                                                });
+
+                                                const result = await handleFetchResponse(response);
+                                                if (!result) return;
+
+                                                if (result.success) {
+                                                    window.location.reload();
+                                                } else {
+                                                    alert('Sync failed: ' + (result.error || 'Unknown error'));
+                                                    btn.disabled = false;
+                                                    btn.innerText = '🚀 Sync Now';
+                                                }
+                                            } catch (err) {
+                                                console.error(err);
+                                                alert('Sync failed: ' + err.message);
+                                                btn.disabled = false;
+                                                btn.innerText = '🚀 Sync Now';
+                                            }
+                                        }
+
+                                        async function scanLocalZip() {
+                                            const btn = document.getElementById('scanBtn');
+                                            btn.disabled = true;
+                                            btn.innerText = '⏳ Scanning...';
+
+                                            try {
+                                                const response = await fetch('/slack/scan', {
+                                                    method: 'POST'
+                                                });
+
+                                                const result = await handleFetchResponse(response);
+                                                if (!result) return;
+
+                                                if (result.success) {
+                                                    alert(`Success! Processed ${result.zip_file}. Found ${result.events_count} events.`);
+                                                    window.location.reload();
+                                                } else {
+                                                    alert('Scan failed: ' + result.error);
+                                                    btn.disabled = false;
+                                                    btn.innerText = '📂 Scan Local ZIP';
+                                                }
+                                            } catch (err) {
+                                                console.error(err);
+                                                alert('Error: ' + err.message);
+                                                btn.disabled = false;
+                                                btn.innerText = '📂 Scan Local ZIP';
+                                            }
+                                        }
+
+                                        async function runAnalysis() {
+                                            const btn = document.getElementById('analyzeBtn');
+                                            const loading = document.getElementById('analysisLoading');
+                                            const panel = document.getElementById('analysisPanel');
+
+                                            btn.disabled = true;
+                                            panel.style.display = 'none';
+                                            loading.style.display = 'block';
+
+                                            try {
+                                                const response = await fetch('/analyzeSlackDump', { method: 'POST' });
+
+                                                const result = await handleFetchResponse(response);
+                                                if (!result) return;
+
+                                                if (result.success) {
+                                                    await loadAnalysis();
+                                                } else {
+                                                    alert('Analysis failed: ' + result.error);
+                                                }
+                                            } catch (err) {
+                                                console.error(err);
+                                                alert('Error: ' + err.message);
+                                            } finally {
+                                                btn.disabled = false;
+                                                loading.style.display = 'none';
+                                            }
+                                        }
+
+                                        async function loadAnalysis() {
+                                            try {
+                                                const response = await fetch('/data/slack_analysis.json');
+                                                if (response.ok) {
+                                                    const contentType = response.headers.get("content-type");
+                                                    if (contentType && contentType.includes("application/json")) {
+                                                        const data = await response.json();
+                                                        renderAnalysis(data);
+                                                    }
+                                                }
+                                            } catch (err) {
+                                                console.log('No existing analysis found or error loading it.');
+                                            }
+                                        }
+
+                                        function renderAnalysis(data) {
+                                            const panel = document.getElementById('analysisPanel');
+                                            panel.style.display = 'block';
+
+                                            document.getElementById('analysisSummary').innerText = data.summary || 'No summary available.';
+
+                                            const usersList = document.getElementById('topUsersList');
+                                            usersList.innerHTML = '';
+                                            if (data.top_users) {
+                                                data.top_users.forEach(user => {
+                                                    const li = document.createElement('li');
+                                                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                                                    li.style.background = 'transparent';
+                                                    li.style.color = 'var(--text-primary)';
+                                                    li.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+                                                    li.innerHTML = `<span>${user}</span>`;
+                                                    usersList.appendChild(li);
+                                                });
+                                            }
+
+                                            const keywordsList = document.getElementById('topKeywordsList');
+                                            keywordsList.innerHTML = '';
+                                            if (data.top_keywords) {
+                                                data.top_keywords.forEach(keyword => {
+                                                    const span = document.createElement('span');
+                                                    span.className = 'badge bg-primary';
+                                                    span.style.fontSize = '0.9rem';
+                                                    span.innerText = keyword;
+                                                    keywordsList.appendChild(span);
+                                                });
+                                            }
+
+                                            const eventsList = document.getElementById('eventsTimeline');
+                                            eventsList.innerHTML = '';
+                                            if (data.events) {
+                                                data.events.forEach(evt => {
+                                                    const div = document.createElement('div');
+                                                    div.className = 'list-group-item';
+                                                    div.style.background = 'rgba(255,255,255,0.05)';
+                                                    div.style.border = 'none';
+                                                    div.style.marginBottom = '0.5rem';
+                                                    div.style.borderRadius = '8px';
+                                                    div.innerHTML = `
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1" style="color: var(--neon-cyan);">${evt.title || 'Event'}</h5>
+                                    <small style="color: var(--text-muted);">${evt.date || ''}</small>
+                                </div>
+                                <p class="mb-1" style="color: var(--text-primary);">${evt.description || ''}</p>
+                                <small style="color: var(--text-muted);">Channel: ${evt.source_channel || 'N/A'}</small>
+                            `;
+                                                    eventsList.appendChild(div);
+                                                });
+                                            }
+                                        }
+
+                                        window.onload = function () {
+                                            loadAnalysis();
+                                        };
+                                    </script>
+                                    </body>
+
+                                    </html>
