@@ -1,0 +1,619 @@
+{
+  "timestamp": "2025-11-22T03:09:43.976Z",
+  "summary": {
+    "total": 27,
+    "passed": 27,
+    "failed": 0,
+    "passRate": "100.0%"
+  },
+  "byCategory": {
+    "FILE_UPLOAD": {
+      "passed": 6,
+      "failed": 0,
+      "tests": [
+        {
+          "category": "FILE_UPLOAD",
+          "name": "Normal ZIP upload",
+          "passed": true,
+          "details": {
+            "status": 200,
+            "response": {
+              "success": true,
+              "batch_id": "1763780974576",
+              "message_count": 1,
+              "total_parsed": 1,
+              "channels": [
+                "general"
+              ]
+            }
+          },
+          "id": 1
+        },
+        {
+          "category": "FILE_UPLOAD",
+          "name": "Sequential uploads (3x)",
+          "passed": true,
+          "details": {
+            "successCount": 3,
+            "totalCount": 3
+          },
+          "id": 2
+        },
+        {
+          "category": "FILE_UPLOAD",
+          "name": "Large ZIP (1000 messages)",
+          "passed": true,
+          "details": {
+            "status": 200,
+            "messageCount": 1000
+          },
+          "id": 3
+        },
+        {
+          "category": "FILE_UPLOAD",
+          "name": "Malformed ZIP handling",
+          "passed": true,
+          "details": {
+            "status": 500,
+            "response": {
+              "success": false,
+              "error": "ADM-ZIP: Invalid or unsupported zip format. No END header found"
+            }
+          },
+          "id": 4
+        },
+        {
+          "category": "FILE_UPLOAD",
+          "name": "Non-ZIP file rejection",
+          "passed": true,
+          "details": {
+            "status": 400,
+            "error": "Invalid file type. Only ZIP files are accepted."
+          },
+          "id": 5
+        },
+        {
+          "category": "FILE_UPLOAD",
+          "name": "No Busboy errors (5x uploads)",
+          "passed": true,
+          "details": {
+            "busboyErrorDetected": false
+          },
+          "id": 6
+        }
+      ]
+    },
+    "PARSER": {
+      "passed": 7,
+      "failed": 0,
+      "tests": [
+        {
+          "category": "PARSER",
+          "name": "Normal messages",
+          "passed": true,
+          "details": {
+            "messageCount": 1
+          },
+          "id": 7
+        },
+        {
+          "category": "PARSER",
+          "name": "Bot messages",
+          "passed": true,
+          "details": {
+            "messageCount": 2,
+            "expected": 2
+          },
+          "id": 8
+        },
+        {
+          "category": "PARSER",
+          "name": "Timestamp handling",
+          "passed": true,
+          "details": {
+            "messageCount": 2
+          },
+          "id": 9
+        },
+        {
+          "category": "PARSER",
+          "name": "Empty channels",
+          "passed": true,
+          "details": {
+            "messageCount": 1,
+            "channels": [
+              "active-channel"
+            ]
+          },
+          "id": 10
+        },
+        {
+          "category": "PARSER",
+          "name": "Attachment metadata",
+          "passed": true,
+          "details": {
+            "messageCount": 1
+          },
+          "id": 11
+        },
+        {
+          "category": "PARSER",
+          "name": "Malformed JSON detection",
+          "passed": true,
+          "details": {
+            "status": 200,
+            "handled": true
+          },
+          "id": 12
+        },
+        {
+          "category": "PARSER",
+          "name": "Channel directory traversal",
+          "passed": true,
+          "details": {
+            "channelCount": 3,
+            "channels": [
+              "general",
+              "random",
+              "tech-talk"
+            ]
+          },
+          "id": 13
+        }
+      ]
+    },
+    "DATABASE": {
+      "passed": 3,
+      "failed": 0,
+      "tests": [
+        {
+          "category": "DATABASE",
+          "name": "Correct timestamps",
+          "passed": "2025-11-22T03:09:38.669Z",
+          "details": {
+            "recordCount": 1,
+            "hasTimestamp": "2025-11-22T03:09:38.669Z"
+          },
+          "id": 14
+        },
+        {
+          "category": "DATABASE",
+          "name": "Correct channel mapping",
+          "passed": true,
+          "details": {
+            "channel": "test-channel",
+            "expected": "test-channel"
+          },
+          "id": 15
+        },
+        {
+          "category": "DATABASE",
+          "name": "Handling missing fields safely",
+          "passed": true,
+          "details": {
+            "messageCount": 2
+          },
+          "id": 16
+        }
+      ]
+    },
+    "API": {
+      "passed": 7,
+      "failed": 0,
+      "tests": [
+        {
+          "category": "API",
+          "name": "POST /slack/upload",
+          "passed": true,
+          "details": {
+            "status": 200,
+            "success": true
+          },
+          "id": 17
+        },
+        {
+          "category": "API",
+          "name": "GET /slack/channels",
+          "passed": true,
+          "details": {
+            "status": 200,
+            "isArray": true,
+            "count": 5
+          },
+          "id": 18
+        },
+        {
+          "category": "API",
+          "name": "GET /slack/messages/:channel",
+          "passed": true,
+          "details": {
+            "status": 200,
+            "isArray": true,
+            "count": 1038
+          },
+          "id": 19
+        },
+        {
+          "category": "API",
+          "name": "GET /slack/messages/:channel?keyword=",
+          "passed": true,
+          "details": {
+            "status": 200,
+            "count": 11
+          },
+          "id": 20
+        },
+        {
+          "category": "API",
+          "name": "GET /slack/search?keyword=",
+          "passed": true,
+          "details": {
+            "status": 200,
+            "count": 1016
+          },
+          "id": 21
+        },
+        {
+          "category": "API",
+          "name": "GET /slack/search (no keyword)",
+          "passed": true,
+          "details": {
+            "status": 400,
+            "expectError": true
+          },
+          "id": 22
+        },
+        {
+          "category": "API",
+          "name": "GET /slack/messages/:channel (non-existent)",
+          "passed": true,
+          "details": {
+            "status": 200,
+            "count": 0
+          },
+          "id": 23
+        }
+      ]
+    },
+    "E2E": {
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        {
+          "category": "E2E",
+          "name": "Full flow (upload → DB → API)",
+          "passed": true,
+          "details": {
+            "uploadSuccess": true,
+            "dbSuccess": true,
+            "apiSuccess": true
+          },
+          "id": 24
+        },
+        {
+          "category": "E2E",
+          "name": "30-day filter consistency",
+          "passed": true,
+          "details": {
+            "messageCount": 1,
+            "expected": 1
+          },
+          "id": 25
+        }
+      ]
+    },
+    "STRESS": {
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        {
+          "category": "STRESS",
+          "name": "Sequential 10 uploads",
+          "passed": true,
+          "details": {
+            "successCount": 10,
+            "totalCount": 10
+          },
+          "id": 26
+        },
+        {
+          "category": "STRESS",
+          "name": "Multiple malformed files",
+          "passed": true,
+          "details": {
+            "handledCount": 3,
+            "totalCount": 3
+          },
+          "id": 27
+        }
+      ]
+    }
+  },
+  "allResults": [
+    {
+      "category": "FILE_UPLOAD",
+      "name": "Normal ZIP upload",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "response": {
+          "success": true,
+          "batch_id": "1763780974576",
+          "message_count": 1,
+          "total_parsed": 1,
+          "channels": [
+            "general"
+          ]
+        }
+      },
+      "id": 1
+    },
+    {
+      "category": "FILE_UPLOAD",
+      "name": "Sequential uploads (3x)",
+      "passed": true,
+      "details": {
+        "successCount": 3,
+        "totalCount": 3
+      },
+      "id": 2
+    },
+    {
+      "category": "FILE_UPLOAD",
+      "name": "Large ZIP (1000 messages)",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "messageCount": 1000
+      },
+      "id": 3
+    },
+    {
+      "category": "FILE_UPLOAD",
+      "name": "Malformed ZIP handling",
+      "passed": true,
+      "details": {
+        "status": 500,
+        "response": {
+          "success": false,
+          "error": "ADM-ZIP: Invalid or unsupported zip format. No END header found"
+        }
+      },
+      "id": 4
+    },
+    {
+      "category": "FILE_UPLOAD",
+      "name": "Non-ZIP file rejection",
+      "passed": true,
+      "details": {
+        "status": 400,
+        "error": "Invalid file type. Only ZIP files are accepted."
+      },
+      "id": 5
+    },
+    {
+      "category": "FILE_UPLOAD",
+      "name": "No Busboy errors (5x uploads)",
+      "passed": true,
+      "details": {
+        "busboyErrorDetected": false
+      },
+      "id": 6
+    },
+    {
+      "category": "PARSER",
+      "name": "Normal messages",
+      "passed": true,
+      "details": {
+        "messageCount": 1
+      },
+      "id": 7
+    },
+    {
+      "category": "PARSER",
+      "name": "Bot messages",
+      "passed": true,
+      "details": {
+        "messageCount": 2,
+        "expected": 2
+      },
+      "id": 8
+    },
+    {
+      "category": "PARSER",
+      "name": "Timestamp handling",
+      "passed": true,
+      "details": {
+        "messageCount": 2
+      },
+      "id": 9
+    },
+    {
+      "category": "PARSER",
+      "name": "Empty channels",
+      "passed": true,
+      "details": {
+        "messageCount": 1,
+        "channels": [
+          "active-channel"
+        ]
+      },
+      "id": 10
+    },
+    {
+      "category": "PARSER",
+      "name": "Attachment metadata",
+      "passed": true,
+      "details": {
+        "messageCount": 1
+      },
+      "id": 11
+    },
+    {
+      "category": "PARSER",
+      "name": "Malformed JSON detection",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "handled": true
+      },
+      "id": 12
+    },
+    {
+      "category": "PARSER",
+      "name": "Channel directory traversal",
+      "passed": true,
+      "details": {
+        "channelCount": 3,
+        "channels": [
+          "general",
+          "random",
+          "tech-talk"
+        ]
+      },
+      "id": 13
+    },
+    {
+      "category": "DATABASE",
+      "name": "Correct timestamps",
+      "passed": "2025-11-22T03:09:38.669Z",
+      "details": {
+        "recordCount": 1,
+        "hasTimestamp": "2025-11-22T03:09:38.669Z"
+      },
+      "id": 14
+    },
+    {
+      "category": "DATABASE",
+      "name": "Correct channel mapping",
+      "passed": true,
+      "details": {
+        "channel": "test-channel",
+        "expected": "test-channel"
+      },
+      "id": 15
+    },
+    {
+      "category": "DATABASE",
+      "name": "Handling missing fields safely",
+      "passed": true,
+      "details": {
+        "messageCount": 2
+      },
+      "id": 16
+    },
+    {
+      "category": "API",
+      "name": "POST /slack/upload",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "success": true
+      },
+      "id": 17
+    },
+    {
+      "category": "API",
+      "name": "GET /slack/channels",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "isArray": true,
+        "count": 5
+      },
+      "id": 18
+    },
+    {
+      "category": "API",
+      "name": "GET /slack/messages/:channel",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "isArray": true,
+        "count": 1038
+      },
+      "id": 19
+    },
+    {
+      "category": "API",
+      "name": "GET /slack/messages/:channel?keyword=",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "count": 11
+      },
+      "id": 20
+    },
+    {
+      "category": "API",
+      "name": "GET /slack/search?keyword=",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "count": 1016
+      },
+      "id": 21
+    },
+    {
+      "category": "API",
+      "name": "GET /slack/search (no keyword)",
+      "passed": true,
+      "details": {
+        "status": 400,
+        "expectError": true
+      },
+      "id": 22
+    },
+    {
+      "category": "API",
+      "name": "GET /slack/messages/:channel (non-existent)",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "count": 0
+      },
+      "id": 23
+    },
+    {
+      "category": "E2E",
+      "name": "Full flow (upload → DB → API)",
+      "passed": true,
+      "details": {
+        "uploadSuccess": true,
+        "dbSuccess": true,
+        "apiSuccess": true
+      },
+      "id": 24
+    },
+    {
+      "category": "E2E",
+      "name": "30-day filter consistency",
+      "passed": true,
+      "details": {
+        "messageCount": 1,
+        "expected": 1
+      },
+      "id": 25
+    },
+    {
+      "category": "STRESS",
+      "name": "Sequential 10 uploads",
+      "passed": true,
+      "details": {
+        "successCount": 10,
+        "totalCount": 10
+      },
+      "id": 26
+    },
+    {
+      "category": "STRESS",
+      "name": "Multiple malformed files",
+      "passed": true,
+      "details": {
+        "handledCount": 3,
+        "totalCount": 3
+      },
+      "id": 27
+    }
+  ]
+}

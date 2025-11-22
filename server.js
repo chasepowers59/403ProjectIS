@@ -31,6 +31,10 @@ const isAuthenticated = (req, res, next) => {
     res.redirect('/login');
 };
 
+// Slack Routes
+const slackRoutes = require('./routes/slackRoutes');
+app.use('/slack', isAuthenticated, slackRoutes);
+
 // Routes
 
 // Login
