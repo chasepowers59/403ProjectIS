@@ -1,0 +1,212 @@
+<%- include('partials/header') %>
+
+    <nav class="navbar navbar-expand-lg navbar-antigravity mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">⚡ ANTI-GRAVITY</a>
+            <div class="d-flex align-items-center gap-3">
+                <form class="d-flex" action="/search" method="GET">
+                    <input class="form-control-antigravity me-2" type="search" name="q" placeholder="Search events..."
+                        value="<%= searchQuery || '' %>" style="min-width: 200px;">
+                    <button class="btn-outline-antigravity" type="submit">Search</button>
+                </form>
+                <span class="navbar-text text-muted-antigravity">
+                    Hello, <strong style="color: var(--neon-cyan);">
+                        <%= user.name %>
+                    </strong>
+                </span>
+                <a href="/logout" class="btn-outline-antigravity">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Sync Controls -->
+        <div class="glass-card-static sync-container mb-4" style="padding: 2rem;">
+            <h5 class="card-title-glow mb-3">⚡ Sync Data</h5>
+            <div class="d-flex gap-3 flex-wrap align-items-center">
+                <select id="syncChannelSelect" class="form-select-antigravity" style="max-width: 350px;">
+                    <option value="">All Channels (Slow)</option>
+                    <% if (typeof channels !=='undefined' && channels && channels.length> 0) { %>
+                        <% channels.forEach(channel=> { %>
+                            <option value="<%= channel.id %>">
+                                <%= channel.name %>
+                            </option>
+                            <% }); %>
+                                <% } %>
+                </select>
+                <button id="syncBtn" class="btn-antigravity" onclick="syncData()">
+                    🚀 Sync Now
+                </button>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 style="font-size: 2rem; font-weight: 700;">📅 Events</h2>
+            <button class="btn-antigravity" data-bs-toggle="modal" data-bs-target="#addEventModal">
+                + Add Event
+            </button>
+        </div>
+
+        <div class="row">
+            <% events.forEach((event, index)=> { %>
+                <div class="col-md-4 mb-4">
+                    <div class="glass-card event-card h-100" style="--card-index: <%= index %>; padding: 1.5rem;">
+                        <div class="mb-3">
+                            <h5 class="card-title-glow" style="font-size: 1.25rem; margin-bottom: 0.75rem;">
+                                <%= event.title %>
+                            </h5>
+                            <h6 class="text-muted-antigravity" style="font-size: 0.9rem; font-weight: 400;">
+                                🕒 <%= new Date(event.start_time).toLocaleString() %>
+                            </h6>
+                        </div>
+                        <div class="mb-3">
+                            <p style="margin-bottom: 0.5rem; color: var(--text-secondary);">
+                                <strong style="color: var(--text-primary);">Channel:</strong>
+                                <%= event.source_channel || 'N/A' %>
+                            </p>
+                            <div>
+                                <strong style="color: var(--text-primary);">Status:</strong>
+                                <span
+                                    class="badge-antigravity <%= event.status === 'approved' ? 'badge-success-antigravity' : (event.status === 'pending' ? 'badge-warning-antigravity' : 'badge-secondary-antigravity') %>">
+                                    <%= event.status %>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-auto">
+                            <button class="btn-outline-antigravity btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#editEventModal<%= event.event_id %>"
+                                style="padding: 0.4rem 1rem; font-size: 0.875rem;">
+                                Edit
+                            </button>
+                            <form action="/events/delete/<%= event.event_id %>" method="POST"
+                                onsubmit="return confirm('Are you sure?')" style="margin: 0;">
+                                <button type="submit" class="btn-danger-antigravity btn-sm"
+                                    style="padding: 0.4rem 1rem; font-size: 0.875rem;">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <% }) %>
+        </div>
+    </div>
+
+    <!-- Add Event Modal -->
+    <div class="modal fade" id="addEventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-antigravity">
+                <form action="/events" method="POST">
+                    <div class="modal-header-antigravity">
+                        <h5 class="modal-title-antigravity">Add New Event</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body-antigravity">
+                        <div class="mb-3">
+                            <label class="form-label"
+                                style="color: var(--text-primary); font-weight: 500;">Title</label>
+                            <input type="text" name="title" class="form-control-antigravity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary); font-weight: 500;">Date</label>
+                            <input type="datetime-local" name="start_time" class="form-control-antigravity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary); font-weight: 500;">Source
+                                Channel</label>
+                            <input type="text" name="source_channel" class="form-control-antigravity"
+                                placeholder="e.g. #general">
+                        </div>
+                    </div>
+                    <div class="modal-footer-antigravity">
+                        <button type="button" class="btn-outline-antigravity" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn-antigravity">Create Event</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modals (Moved outside of glass-card loop to avoid z-index issues) -->
+    <% events.forEach((event)=> { %>
+        <div class="modal fade" id="editEventModal<%= event.event_id %>" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content modal-content-antigravity">
+                    <form action="/events/update/<%= event.event_id %>" method="POST">
+                        <div class="modal-header-antigravity">
+                            <h5 class="modal-title-antigravity">Edit Event</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body-antigravity">
+                            <div class="mb-3">
+                                <label class="form-label"
+                                    style="color: var(--text-primary); font-weight: 500;">Title</label>
+                                <input type="text" name="title" class="form-control-antigravity"
+                                    value="<%= event.title %>" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"
+                                    style="color: var(--text-primary); font-weight: 500;">Date</label>
+                                <input type="datetime-local" name="start_time" class="form-control-antigravity"
+                                    value="<%= new Date(event.start_time).toISOString().slice(0, 16) %>" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"
+                                    style="color: var(--text-primary); font-weight: 500;">Status</label>
+                                <select name="status" class="form-select-antigravity">
+                                    <option value="pending" <%=event.status==='pending' ? 'selected' : '' %>>Pending
+                                    </option>
+                                    <option value="approved" <%=event.status==='approved' ? 'selected' : '' %>>Approved
+                                    </option>
+                                    <option value="rejected" <%=event.status==='rejected' ? 'selected' : '' %>>Rejected
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer-antigravity">
+                            <button type="button" class="btn-outline-antigravity" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn-antigravity">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <% }) %>
+
+            <script>
+                async function syncData() {
+                    const btn = document.getElementById('syncBtn');
+                    const select = document.getElementById('syncChannelSelect');
+                    const channelId = select.value;
+                    const channelName = select.options[select.selectedIndex].text;
+
+                    btn.disabled = true;
+                    btn.innerText = `🔄 Syncing ${channelName}...`;
+
+                    try {
+                        const response = await fetch('/refresh-data', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ channelId })
+                        });
+
+                        const result = await response.json();
+                        if (result.success) {
+                            window.location.reload();
+                        } else {
+                            alert('Sync failed: ' + (result.error || 'Unknown error'));
+                            btn.disabled = false;
+                            btn.innerText = '🚀 Sync Now';
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Sync failed: ' + err.message);
+                        btn.disabled = false;
+                        btn.innerText = '🚀 Sync Now';
+                    }
+                }
+            </script>
+
+            </body>
+
+            </html>

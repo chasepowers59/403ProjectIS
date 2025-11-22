@@ -1,0 +1,36 @@
+<%- include('partials/header') %>
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+        <div class="glass-card-static"
+            style="width: 450px; padding: 3rem; animation: floatSlow 8s ease-in-out infinite;">
+            <div class="text-center mb-4">
+                <h3 class="card-title-glow" style="font-size: 2rem; margin-bottom: 0.5rem;">⚡ ANTI-GRAVITY</h3>
+                <p class="text-muted-antigravity">Access your calendar</p>
+            </div>
+            <% if (error) { %>
+                <div class="alert alert-danger"
+                    style="background: rgba(255, 46, 151, 0.2); border: 1px solid var(--neon-pink); color: var(--neon-pink); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <%= error %>
+                </div>
+                <% } %>
+                    <form action="/login" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label"
+                                style="color: var(--text-primary); font-weight: 500;">Email</label>
+                            <input type="email" name="email" class="form-control-antigravity" required
+                                placeholder="your@email.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"
+                                style="color: var(--text-primary); font-weight: 500;">Password</label>
+                            <input type="password" name="password" class="form-control-antigravity" required
+                                placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn-antigravity w-100" style="margin-top: 1rem;">
+                            🚀 Login
+                        </button>
+                    </form>
+        </div>
+    </div>
+    </body>
+
+    </html>

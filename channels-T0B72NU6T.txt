@@ -1,0 +1,85 @@
+ID           Arch  What
+C0B76PKQ9    -     #admin_announcements
+C0B76UP18    arch  #random (archived)
+C0B8SRYGL    -     #students_mism_1st
+C0B8TJPT3    arch  #news (archived)
+C0HM7BCRJ    -     #students_mism_2nd
+C0HM9NNGK    -     #general
+C0HM9S659    -     #questions
+C0HMD9ENS    -     #students_seniors
+C0HMDDB24    -     #students_jr_core
+C0HS7NKPX    arch  #twitter (archived)
+C0HSRMGUE    -     #alumni
+C0JA3FPGE    arch  #webdev (archived)
+C0JCCFZ5X    arch  #data_mining (archived)
+C0LAYJEAZ    arch  #junior_core_413 (archived)
+C0LB3AYP2    arch  #junior_core_404 (archived)
+C0NGE5SU9    arch  #internships (archived)
+C0NGSBSAK    -     #jobs_and_internships
+C0NUFTU5A    arch  #howtoslack (archived)
+C0S1E06ET    arch  #junior_core_405 (archived)
+C0VAN2PRR    arch  #ios (archived)
+C0VBYG4FQ    arch  #docker (archived)
+C1VCBE5NE    arch  #hackthenorth (archived)
+C252106NL    arch  #island (archived)
+C25KQF278    arch  #software_startup (archived)
+C25L0JGCX    arch  #ux_design (archived)
+C27482NNL    arch  #sale (archived)
+C284Q42RF    arch  #strategic-management (archived)
+C29RXTK0D    arch  #internship-insider (archived)
+C2ABFHBF1    arch  #dorm (archived)
+C2HSZ5KPU    arch  #yukon (archived)
+C38SJ9S8Y    arch  #ski-trip-2k16 (archived)
+C39J7BSG5    arch  #dorm2 (archived)
+C3NV2L87M    arch  #is411 (archived)
+C3P8P7SA0    arch  #core404 (archived)
+C3PMX6GTF    arch  #is411_413 (archived)
+C3PNFGXRU    arch  #advanced_database (archived)
+C3ZQRV64S    arch  #ais-competitions (archived)
+C3ZS0G805    arch  #junior-core-humor (archived)
+C4PS2KZTK    arch  #supremeleaders (archived)
+C7HCGETEE    arch  #entrepreneurs (archived)
+C7J81RR0E    arch  #alumniutah (archived)
+C8NG2LVLM    arch  #is404-winter2018 (archived)
+CCXNPEQNP    arch  #aws (archived)
+CDN1U8CAH    arch  #healthcare (archived)
+CGEEPLVV5    arch  #ais_epic_battle (archived)
+CMYNQ5L4C    arch  #women_in_is (archived)
+CMZ6Q8SQ5    -     #a_team
+CTK1HA750    -     #students_pre_is
+CV197N87Q    arch  #marchmadnis (archived)
+CVDHH5FBK    arch  #mism2zoom (archived)
+C0109KDBPA4  arch  #mism1zoom (archived)
+C01AFRJ098B  -     #wais
+C01EJFAUX0S  -     #students_international
+C01QLRHGW7N  arch  #bikers (archived)
+C01QX9DN1BN  arch  #clubs (archived)
+C02G70H18H3  arch  #cool-chill-hangs (archived)
+C02GNJC43B3  arch  #do-some-good (archived)
+C02HFUWLU69  arch  #silicon-slopes (archived)
+C035M25V24C  -     #tech_talks
+C038GA1JQTX  arch  #2022aiscompetitions (archived)
+C0441QYNKQ8  -     #memes_and_random
+C04QHNM2SMB  -     #ais_events
+C055EASMKBN  -     #service_opportunities
+C06DVSF8X0U  -     #things_that_really_matter
+C071BPMJRK5  -     #look-what-i-made
+C09AP7D1SCF  -     #emphasis_data_science
+C09AVHSD3DZ  -     #emphasis_software_dev
+C09AZLFBHPF  -     #emphasis_cyber_security
+C09B19K9QAW  -     #competitions
+C09B1A2N0QJ  -     #emphasis_prod_mgmt
+C09B1CDSQQ2  -     #masters_degree_info
+C09BE2XDFL1  -     #network_events
+C09BE3L6R8R  -     #social_meetups
+C09FBRRMAR0  -     Group: @wait2 @danielwait6492 @housleye @laursen2 @cvpowers @jalenhu
+C09LVAP0W93  -     #emphasis_consulting
+C09QLM94UEL  -     #ais-admin
+C09S26A977V  -     #emphasis_cloud_devops
+C09T2HJ49FA  -     #christmas_card_2025
+D09H4MD2FQS  -     @<external>:U087NPV3JAJ
+D09FCEXAYF8  -     @<external>:U02GZ15DUF7
+D09AR6XQQB0  -     @<external>:U09AR6XNZRU
+D09AR6XQBRU  -     @<external>:USLACKBOT
+D09ADG0D9V5  -     @<external>:U7HJYPZ60
+D09ABGS3F5M  -     @<external>:UQUQY6C8K
