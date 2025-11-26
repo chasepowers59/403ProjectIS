@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const AdmZip = require('adm-zip');
-const knex = require('knex')(require('../knexfile').development);
+const knex = require('knex')(require('../database/knexfile').development);
 const slackParser = require('../services/slackParser');
 const aiEventExtractor = require('../services/aiEventExtractor');
 
@@ -394,31 +394,50 @@ const slackController = {
      */
     analyzeSlackDump: async (req, res) => {
         try {
-            // 1. Find newest ZIP in /slackdump_exports/
+            let messages = [];
+
+            // 1. Try to find newest ZIP in /slackdump_exports/
             const exportsDir = path.join(process.cwd(), 'slackdump_exports');
-            if (!fs.existsSync(exportsDir)) {
-                fs.mkdirSync(exportsDir, { recursive: true });
+            let zipFound = false;
+
+            if (fs.existsSync(exportsDir)) {
+                const files = fs.readdirSync(exportsDir);
+                const zipFiles = files.filter(file => file.endsWith('.zip'));
+
+                if (zipFiles.length > 0) {
+                    // Sort by mtime desc
+                    zipFiles.sort((a, b) => {
+                        return fs.statSync(path.join(exportsDir, b)).mtime.getTime() - fs.statSync(path.join(exportsDir, a)).mtime.getTime();
+                    });
+
+                    const newestZip = zipFiles[0];
+                    const zipPath = path.join(exportsDir, newestZip);
+                    console.log(`[SlackController] Analyzing newest ZIP: ${newestZip}`);
+
+                    // Parse in-memory
+                    messages = await slackParser.parseSlackExportInMemory(zipPath);
+                    console.log(`[SlackController] Extracted ${messages.length} messages from ZIP`);
+                    zipFound = true;
+                }
             }
 
-            const files = fs.readdirSync(exportsDir);
-            const zipFiles = files.filter(file => file.endsWith('.zip'));
+            // 2. Fallback: Use Database if no ZIP found
+            if (!zipFound) {
+                console.log('[SlackController] No ZIP found. Falling back to database messages.');
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            if (zipFiles.length === 0) {
-                return res.status(404).json({ success: false, error: 'No ZIP files found in /slackdump_exports/' });
+                messages = await knex('slack_messages')
+                    .where('msg_timestamp', '>=', thirtyDaysAgo.toISOString())
+                    .orderBy('msg_timestamp', 'desc')
+                    .select('channel', 'user', 'msg_timestamp', 'text');
+
+                console.log(`[SlackController] Loaded ${messages.length} messages from database`);
             }
 
-            // Sort by mtime desc
-            zipFiles.sort((a, b) => {
-                return fs.statSync(path.join(exportsDir, b)).mtime.getTime() - fs.statSync(path.join(exportsDir, a)).mtime.getTime();
-            });
-
-            const newestZip = zipFiles[0];
-            const zipPath = path.join(exportsDir, newestZip);
-            console.log(`[SlackController] Analyzing newest ZIP: ${newestZip}`);
-
-            // 2. Parse in-memory
-            const messages = await slackParser.parseSlackExportInMemory(zipPath);
-            console.log(`[SlackController] Extracted ${messages.length} messages for analysis`);
+            if (messages.length === 0) {
+                return res.status(404).json({ success: false, error: 'No messages found for analysis (checked ZIP and Database).' });
+            }
 
             // 3. Prepare OpenAI Prompt
             const systemPromptPath = path.join(process.cwd(), 'ai_system', 'system_instructions.md');
@@ -447,8 +466,8 @@ const slackController = {
 
             const analysisResult = JSON.parse(response.choices[0].message.content);
 
-            // 5. Save to /data/slack_analysis.json
-            const dataDir = path.join(process.cwd(), 'data');
+            // 5. Save to /public/data/slack_analysis.json
+            const dataDir = path.join(process.cwd(), 'public', 'data');
             if (!fs.existsSync(dataDir)) {
                 fs.mkdirSync(dataDir, { recursive: true });
             }

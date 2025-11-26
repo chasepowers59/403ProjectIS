@@ -1,34 +1,120 @@
 <%- include('partials/header') %>
-    <div class="container d-flex justify-content-center align-items-center vh-100">
-        <div class="glass-card-static"
-            style="width: 450px; padding: 3rem; animation: floatSlow 8s ease-in-out infinite;">
-            <div class="text-center mb-4">
-                <h3 class="card-title-glow" style="font-size: 2rem; margin-bottom: 0.5rem;">⚡ ANTI-GRAVITY</h3>
-                <p class="text-muted-antigravity">Access your calendar</p>
-            </div>
-            <% if (error) { %>
-                <div class="alert alert-danger"
-                    style="background: rgba(255, 46, 151, 0.2); border: 1px solid var(--neon-pink); color: var(--neon-pink); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;">
-                    <%= error %>
+    <div class="container-fluid vh-100 p-0 overflow-hidden">
+        <div class="row h-100 g-0">
+
+            <!-- Left Side: Login Form -->
+            <div class="col-md-6 d-flex flex-column justify-content-center align-items-center position-relative"
+                style="background: var(--bg-dark); z-index: 2;">
+
+                <!-- Small Brand Top Left -->
+                <div class="position-absolute top-0 start-0 p-5">
+                    <div class="d-flex align-items-center gap-2">
+                        <span
+                            style="font-size: 1.1rem; font-weight: 700; letter-spacing: 1.5px; color: var(--text-secondary);">BYU
+                            INFORMATION SYSTEMS</span>
+                    </div>
                 </div>
-                <% } %>
-                    <form action="/login" method="POST">
-                        <div class="mb-3">
-                            <label class="form-label"
-                                style="color: var(--text-primary); font-weight: 500;">Email</label>
-                            <input type="email" name="email" class="form-control-antigravity" required
-                                placeholder="your@email.com">
+
+                <div style="width: 100%; max-width: 400px; padding: 2rem;">
+                    <h1 class="text-white fw-bold mb-2" style="font-size: 3rem;">Welcome back.</h1>
+                    <p class="text-muted-antigravity mb-5">Please enter your details to access the dashboard.</p>
+
+                    <% if (error) { %>
+                        <div class="alert alert-danger"
+                            style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #ff6b6b; border-radius: 10px; padding: 0.75rem; margin-bottom: 1.5rem;">
+                            <%= error %>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label"
-                                style="color: var(--text-primary); font-weight: 500;">Password</label>
-                            <input type="password" name="password" class="form-control-antigravity" required
-                                placeholder="••••••••">
+                        <% } %>
+
+                            <form action="/login" method="POST">
+                                <div class="mb-3">
+                                    <input type="email" name="email" class="form-control-antigravity form-control-lg"
+                                        required placeholder="Email Address"
+                                        style="height: 55px; border-radius: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                </div>
+
+                                <div class="mb-4">
+                                    <input type="password" name="password"
+                                        class="form-control-antigravity form-control-lg" required placeholder="Password"
+                                        style="height: 55px; border-radius: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rememberMe"
+                                            style="background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
+                                        <label class="form-check-label text-muted-antigravity" for="rememberMe">
+                                            Remember me
+                                        </label>
+                                    </div>
+                                    <a href="#" class="text-decoration-none"
+                                        style="color: var(--text-secondary); font-size: 0.9rem;">Forgot password?</a>
+                                </div>
+
+                                <button type="submit" class="btn w-100 py-3 fw-bold text-white mb-3"
+                                    style="border-radius: 12px; background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%); border: none; font-size: 1rem; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);">
+                                    Log In
+                                </button>
+
+                                <button type="button" class="btn w-100 py-3 fw-bold text-white"
+                                    style="border-radius: 12px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google"
+                                        style="width: 20px; height: 20px;">
+                                    Continue with Google
+                                </button>
+                            </form>
+
+                            <div class="text-center mt-4">
+                                <span class="text-muted-antigravity">Don't have an account? <a href="#"
+                                        class="text-decoration-none fw-bold text-white">Contact Admin</a></span>
+                            </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Visual/Gradient -->
+            <div class="col-md-6 d-none d-md-flex align-items-center justify-content-center position-relative overflow-hidden"
+                style="background: #0f172a;">
+
+                <!-- Animated Gradient Background -->
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                            background: radial-gradient(circle at 10% 20%, rgb(69, 88, 255) 0%, rgb(60, 29, 255) 90%); 
+                            opacity: 0.8; z-index: 1;"></div>
+                <div
+                    style="position: absolute; top: -20%; right: -20%; width: 80%; height: 80%; 
+                            background: radial-gradient(circle, var(--neon-cyan) 0%, transparent 70%); 
+                            filter: blur(80px); opacity: 0.4; z-index: 2; animation: floatSlow 10s infinite alternate;">
+                </div>
+                <div
+                    style="position: absolute; bottom: -20%; left: -20%; width: 80%; height: 80%; 
+                            background: radial-gradient(circle, var(--neon-pink) 0%, transparent 70%); 
+                            filter: blur(80px); opacity: 0.4; z-index: 2; animation: floatSlow 12s infinite alternate-reverse;">
+                </div>
+
+                <!-- Content -->
+                <div class="text-center position-relative" style="z-index: 3; max-width: 80%;">
+                    <img src="/images/team_logo.jpg" alt="Team Logo" class="mb-5 shadow-lg"
+                        style="width: 450px; height: auto; border-radius: 30px; transform: rotate(-2deg); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+
+                    <div class="glass-card p-4 mx-auto"
+                        style="max-width: 600px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <h4 class="text-white fw-light mb-3" style="font-style: italic;">"Streamlining communication
+                            analysis for better insights."</h4>
+                        <div class="d-flex align-items-center justify-content-center gap-3">
+                            <div
+                                style="width: 30px; height: 30px; border-radius: 50%; background: var(--neon-cyan); display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">
+                                🏢
+                            </div>
+                            <div class="text-start">
+                                <h6 class="text-white mb-0" style="font-size: 0.9rem;">Department of Information Systems
+                                </h6>
+                                <small class="text-white-50" style="font-size: 0.75rem;">Brigham Young
+                                    University</small>
+                            </div>
                         </div>
-                        <button type="submit" class="btn-antigravity w-100" style="margin-top: 1rem;">
-                            🚀 Login
-                        </button>
-                    </form>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
     </body>

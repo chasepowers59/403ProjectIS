@@ -1,4 +1,4 @@
-const knex = require('knex')(require('../knexfile').development);
+const knex = require('knex')(require('../database/knexfile').development);
 
 /**
  * Events Controller
@@ -114,6 +114,84 @@ const eventsController = {
         } catch (error) {
             console.error('[EventsController] Error exporting calendar:', error);
             res.status(500).json({ error: 'Failed to export calendar' });
+        }
+    },
+
+    /**
+     * POST /events
+     * Create a new event manually
+     */
+    createEvent: async (req, res) => {
+        const { title, start_time, source_channel, description, end_time } = req.body;
+        try {
+            await knex('events').insert({
+                title,
+                start_time,
+                end_time: end_time || null,
+                source_channel,
+                description: description || '',
+                status: 'pending'
+            });
+            res.redirect('/dashboard');
+        } catch (err) {
+            console.error('[EventsController] Error creating event:', err);
+            res.status(500).send('Error creating event');
+        }
+    },
+
+    /**
+     * POST /events/update/:id
+     * Update an existing event
+     */
+    updateEvent: async (req, res) => {
+        const { id } = req.params;
+        const { title, start_time, end_time, description, source_channel, status } = req.body;
+        try {
+            await knex('events').where({ id: id }).update({
+                title,
+                start_time,
+                end_time: end_time || null,
+                description: description || '',
+                source_channel: source_channel || '',
+                status: status || 'pending'
+            });
+            res.redirect('/dashboard');
+        } catch (err) {
+            console.error('[EventsController] Error updating event:', err);
+            res.status(500).send('Error updating event');
+        }
+    },
+
+    /**
+     * POST /events/delete/:id
+     * Delete an event
+     */
+    deleteEvent: async (req, res) => {
+        const { id } = req.params;
+        try {
+            await knex('events').where({ id: id }).del();
+            res.redirect('/dashboard');
+        } catch (err) {
+            console.error('[EventsController] Error deleting event:', err);
+            res.status(500).send('Error deleting event');
+        }
+    },
+
+    /**
+     * GET /calendar
+     * Render the calendar page
+     */
+    getCalendarPage: async (req, res) => {
+        try {
+            const slackService = require('../services/slackService');
+            const channels = await slackService.getChannels();
+            res.render('calendar', {
+                user: req.session.user,
+                channels
+            });
+        } catch (error) {
+            console.error('[EventsController] Error rendering calendar:', error);
+            res.status(500).send('Server Error');
         }
     }
 };

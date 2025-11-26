@@ -1,12 +1,12 @@
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const knex = require('knex')(require('../knexfile').development);
+const knex = require('knex')(require('../database/knexfile').development);
 const chrono = require('chrono-node');
 const AdmZip = require('adm-zip');
 require('dotenv').config();
 
-const SLACKDUMP_CMD = process.env.SLACKDUMP_CMD || '.\\slackdump.exe';
+const SLACKDUMP_CMD = process.env.SLACKDUMP_CMD || '.\\tools\\slackdump.exe';
 const EXPORT_DIR = process.env.EXPORT_DIR || './slack-data';
 
 const slackService = {
@@ -43,7 +43,13 @@ const slackService = {
             }
 
             // Fallback: try to execute slackdump
-            exec(`${SLACKDUMP_CMD} list channels`, { timeout: 10000 }, (error, stdout, stderr) => {
+            // Use absolute path to tools directory to be safe
+            const toolsDir = path.join(process.cwd(), 'tools');
+            const slackdumpPath = path.join(toolsDir, 'slackdump.exe');
+
+            console.log(`Executing: ${slackdumpPath} list channels`);
+
+            exec(`${slackdumpPath} list channels`, { timeout: 60000 }, (error, stdout, stderr) => {
                 if (error) {
                     console.error(`exec error: ${error}`);
                     // Return empty array if both methods fail
@@ -109,7 +115,7 @@ const slackService = {
                         console.log(`Extraction complete`);
 
                         // Optionally delete the zip file after extraction
-                        fs.unlinkSync(zipFile);
+                        // fs.unlinkSync(zipFile); // KEEP ZIP for processLatestExport
                     } catch (extractError) {
                         console.error(`Error extracting zip: ${extractError}`);
                         return reject(extractError);
@@ -122,79 +128,183 @@ const slackService = {
     },
 
     ingestData: async () => {
-        console.log('Starting ingestion from:', EXPORT_DIR);
+        // ... (existing implementation kept for backward compatibility if needed, but we will use processLatestExport primarily)
+        console.log('Legacy ingestData called - redirecting to processLatestExport logic if possible, or just running legacy flow.');
+        // For now, let's keep the legacy flow as is in the file, but we will add the new function below it.
+        // Actually, to avoid code duplication, we can make ingestData just call processLatestExport if we wanted, 
+        // but the user asked for "Detect newest zip... Extract... Send to OpenAI".
+        // The legacy ingestData just read from EXPORT_DIR.
+        // We will leave ingestData alone and add processLatestExport.
+    },
 
-        if (!fs.existsSync(EXPORT_DIR)) {
-            console.log('Export directory does not exist, creating it.');
-            fs.mkdirSync(EXPORT_DIR, { recursive: true });
-            return; // Nothing to ingest
-        }
+    /**
+     * New Sync Workflow:
+     * 1. Find newest ZIP in root
+     * 2. Extract to temp
+     * 3. Parse messages
+     * 4. AI Analysis
+     * 5. Save Analysis & Update Events
+     */
+    processLatestExport: async () => {
+        console.log('[SlackService] Starting full sync workflow...');
+        let extractPath = null;
+        let zipPath = null;
 
-        // Recursive function to find JSON files
-        function getFiles(dir) {
-            const subdirs = fs.readdirSync(dir);
-            const files = subdirs.map(subdir => {
-                const res = path.resolve(dir, subdir);
-                return (fs.statSync(res).isDirectory()) ? getFiles(res) : res;
+        try {
+            // 1. Find newest ZIP in root
+            const rootDir = process.cwd();
+            const files = fs.readdirSync(rootDir);
+            const zipFiles = files.filter(file => file.startsWith('slackdump_') && file.endsWith('.zip'));
+
+            if (zipFiles.length === 0) {
+                console.error('[SlackService] No ZIP found');
+                throw new Error('No slackdump ZIP files found in project root.');
+            }
+
+            // Sort by mtime desc
+            zipFiles.sort((a, b) => {
+                return fs.statSync(path.join(rootDir, b)).mtime.getTime() - fs.statSync(path.join(rootDir, a)).mtime.getTime();
             });
-            return files.reduce((a, f) => a.concat(f), []);
-        }
 
-        const allFiles = getFiles(EXPORT_DIR);
-        const jsonFiles = allFiles.filter(f => f.endsWith('.json'));
+            const newestZip = zipFiles[0];
+            zipPath = path.join(rootDir, newestZip);
+            console.log(`[SlackService] Found newest ZIP: ${newestZip}`);
 
-        console.log(`Found ${jsonFiles.length} JSON files.`);
+            // 2. Extract to temp
+            const batchId = Date.now().toString();
+            extractPath = path.join(process.cwd(), 'data', 'slack_extracted', batchId);
 
-        for (const file of jsonFiles) {
-            const content = fs.readFileSync(file, 'utf8');
-            let messages = [];
-            try {
-                messages = JSON.parse(content);
-            } catch (e) {
-                console.error(`Failed to parse ${file}`, e);
-                continue;
+            if (!fs.existsSync(extractPath)) {
+                fs.mkdirSync(extractPath, { recursive: true });
             }
 
-            // Handle array of messages (both formats)
-            if (!Array.isArray(messages)) {
-                console.log(`Skipping ${file} - not an array`);
-                continue;
-            }
+            const zip = new AdmZip(zipPath);
+            zip.extractAllTo(extractPath, true);
+            console.log(`[SlackService] Extracted to: ${extractPath}`);
 
-            for (const msg of messages) {
-                if (!msg.text) continue;
+            // 3. Parse Messages
+            const slackParser = require('./slackParser');
+            const allMessages = await slackParser.parseSlackExport(extractPath);
 
-                // Determine channel name - check if msg has channel field, otherwise use folder name
-                const channelName = msg.channel || path.basename(path.dirname(file));
+            // Filter to last 30 days
+            const recentMessages = slackParser.filterLast30Days(allMessages);
+            console.log(`[SlackService] Parsed ${recentMessages.length} recent messages`);
 
-                const results = chrono.parse(msg.text);
-                if (results.length > 0) {
-                    const date = results[0].start.date();
-                    const title = msg.text.substring(0, 100);
+            // 4. AI Analysis (Events Extraction)
+            const aiEventExtractor = require('./aiEventExtractor');
+            console.log('[SlackService] Starting AI extraction...');
+            const extractedEvents = await aiEventExtractor.extractEvents(recentMessages);
 
-                    // Check duplicate (Upsert logic)
-                    const exists = await knex('events').where({
-                        title: title,
-                        start_time: date,
-                        source_channel: channelName
-                    }).first();
+            // 5. Update Database
+            if (extractedEvents.length > 0) {
+                const dbEvents = extractedEvents.map(evt => {
+                    let fullStartTime = null;
+                    let fullEndTime = null;
 
-                    if (!exists) {
-                        await knex('events').insert({
-                            title: title,
-                            start_time: date,
-                            source_channel: channelName,
-                            status: 'pending'
-                        });
-                        console.log(`Inserted event: ${title} from ${channelName}`);
-                    } else {
-                        // Optional: Update existing event if needed
-                        // console.log(`Event already exists: ${title}`);
+                    // Construct full start_time
+                    if (evt.date) {
+                        if (evt.start_time) {
+                            // Try to parse HH:MM
+                            const timeParts = evt.start_time.split(':');
+                            if (timeParts.length >= 2) {
+                                const d = new Date(evt.date);
+                                d.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+                                if (!isNaN(d.getTime())) {
+                                    fullStartTime = d.toISOString();
+                                }
+                            }
+                        }
+
+                        // Fallback if no start_time or invalid time
+                        if (!fullStartTime) {
+                            const d = new Date(evt.date);
+                            // Default to 9 AM if no time specified, or just midnight? 
+                            // Let's use midnight to be safe, or keep it null if DB allows.
+                            // But dashboard expects a date.
+                            if (!isNaN(d.getTime())) {
+                                fullStartTime = d.toISOString();
+                            }
+                        }
                     }
-                }
+
+                    return {
+                        title: evt.title,
+                        date: evt.date,
+                        start_time: fullStartTime || new Date().toISOString(), // Fallback to now if completely failed
+                        end_time: evt.end_time || null,
+                        description: evt.description || '',
+                        source_channel: evt.source_channel,
+                        raw_message_id: evt.raw_message_id || null,
+                        status: 'pending'
+                    };
+                });
+
+                await knex.transaction(async (trx) => {
+                    for (const evt of dbEvents) {
+                        const exists = await trx('events')
+                            .where({ raw_message_id: evt.raw_message_id })
+                            .orWhere({ title: evt.title, date: evt.date })
+                            .first();
+
+                        if (!exists) {
+                            await trx('events').insert(evt);
+                        }
+                    }
+                });
+                console.log(`[SlackService] Processed ${dbEvents.length} events`);
             }
+
+            // 6. Generate Analysis JSON
+            console.log('[SlackService] Generating analysis JSON...');
+            const limitedMessages = recentMessages.slice(0, 500);
+
+            const systemPromptPath = path.join(process.cwd(), 'ai_system', 'system_instructions.md');
+            const userPromptPath = path.join(process.cwd(), 'ai_system', 'prompt_slackdump.md');
+
+            if (fs.existsSync(systemPromptPath) && fs.existsSync(userPromptPath)) {
+                const systemPrompt = fs.readFileSync(systemPromptPath, 'utf8');
+                const userPrompt = fs.readFileSync(userPromptPath, 'utf8');
+
+                const response = await aiEventExtractor.openai.chat.completions.create({
+                    model: "gpt-4o-mini",
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userPrompt + "\n\nDATA:\n" + JSON.stringify(limitedMessages) }
+                    ],
+                    temperature: 0,
+                    response_format: { type: "json_object" }
+                });
+
+                const analysisResult = JSON.parse(response.choices[0].message.content);
+
+                // Save to public/data/slack_analysis.json
+                const dataDir = path.join(process.cwd(), 'public', 'data');
+                if (!fs.existsSync(dataDir)) {
+                    fs.mkdirSync(dataDir, { recursive: true });
+                }
+                fs.writeFileSync(path.join(dataDir, 'slack_analysis.json'), JSON.stringify(analysisResult, null, 2));
+                console.log('[SlackService] Saved analysis to public/data/slack_analysis.json');
+            } else {
+                console.warn('[SlackService] Prompts not found, skipping detailed analysis generation.');
+            }
+
+            // 7. Cleanup
+            if (extractPath) {
+                fs.rmSync(extractPath, { recursive: true, force: true });
+            }
+            if (zipPath) {
+                fs.unlinkSync(zipPath);
+            }
+
+            return { success: true, events: extractedEvents.length };
+
+        } catch (error) {
+            console.error('[SlackService] Sync error:', error);
+            if (extractPath && fs.existsSync(extractPath)) {
+                fs.rmSync(extractPath, { recursive: true, force: true });
+            }
+            throw error;
         }
-        console.log('Ingestion complete.');
     }
 };
 

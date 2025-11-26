@@ -1,0 +1,303 @@
+<%- include('partials/header') %>
+
+    <nav class="navbar navbar-expand-lg navbar-antigravity mb-4">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/dashboard">
+                <img src="/images/team_logo.jpg" alt="Team Logo" style="height: 40px; border-radius: 5px;">
+                <span>BYU Information Systems Slack Channels</span>
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <a href="/dashboard" class="btn-outline-antigravity">Dashboard</a>
+                <span class="navbar-text text-muted-antigravity">
+                    Hello, <strong style="color: var(--neon-cyan);">
+                        <%= user.name %>
+                    </strong>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Add Event Modal -->
+    <div class="modal fade" id="addEventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-antigravity">
+                <form id="addEventForm" action="/events" method="POST">
+                    <div class="modal-header-antigravity">
+                        <h5 class="modal-title-antigravity">Add New Event</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body-antigravity">
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary);">Title</label>
+                            <input type="text" name="title" class="form-control-antigravity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary);">Date & Time</label>
+                            <input type="datetime-local" name="start_time" id="addEventDate"
+                                class="form-control-antigravity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary);">Source Channel</label>
+                            <select name="source_channel" class="form-select-antigravity">
+                                <option value="">Select Channel...</option>
+                                <% if (typeof channels !=='undefined' && channels) { %>
+                                    <% channels.forEach(channel=> { %>
+                                        <option value="<%= channel.name %>">#<%= channel.name %>
+                                        </option>
+                                        <% }); %>
+                                            <% } %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary);">Description</label>
+                            <textarea name="description" class="form-control-antigravity" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer-antigravity">
+                        <button type="button" class="btn-outline-antigravity" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn-antigravity">Create Event</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Event Modal -->
+    <div class="modal fade" id="editEventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-antigravity">
+                <form id="editEventForm" method="POST">
+                    <div class="modal-header-antigravity">
+                        <h5 class="modal-title-antigravity">Edit Event</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body-antigravity">
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary);">Title</label>
+                            <input type="text" name="title" id="editTitle" class="form-control-antigravity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary);">Date & Time</label>
+                            <input type="datetime-local" name="start_time" id="editDate"
+                                class="form-control-antigravity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary);">Source Channel</label>
+                            <input type="text" name="source_channel" id="editChannel" class="form-control-antigravity">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary);">Status</label>
+                            <select name="status" id="editStatus" class="form-select-antigravity">
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-primary);">Description</label>
+                            <textarea name="description" id="editDescription" class="form-control-antigravity"
+                                rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer-antigravity d-flex justify-content-between">
+                        <button type="button" id="deleteEventBtn" class="btn-danger-antigravity">Delete</button>
+                        <div>
+                            <button type="button" class="btn-outline-antigravity me-2"
+                                data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn-antigravity">Save Changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="glass-card p-4">
+            <div id='calendar'></div>
+        </div>
+    </div>
+
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                themeSystem: 'bootstrap5',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: function (info, successCallback, failureCallback) {
+                    fetch('/events/upcoming?from=2000-01-01&limit=1000')
+                        .then(response => response.json())
+                        .then(data => {
+                            const events = data.map(event => {
+                                let color = '#6c757d'; // secondary/pending
+                                if (event.status === 'approved') color = '#28a745'; // success
+                                if (event.status === 'rejected') color = '#dc3545'; // danger
+
+                                return {
+                                    id: event.id,
+                                    title: event.title,
+                                    start: event.start_time,
+                                    end: event.end_time,
+                                    backgroundColor: color,
+                                    borderColor: color,
+                                    extendedProps: {
+                                        description: event.description,
+                                        source_channel: event.source_channel,
+                                        status: event.status
+                                    }
+                                };
+                            });
+                            successCallback(events);
+                        })
+                        .catch(err => {
+                            console.error('Error fetching events:', err);
+                            failureCallback(err);
+                        });
+                },
+                dateClick: function (info) {
+                    const dateStr = info.dateStr + 'T09:00';
+                    document.getElementById('addEventDate').value = dateStr;
+                    const modal = new bootstrap.Modal(document.getElementById('addEventModal'));
+                    modal.show();
+                },
+                eventClick: function (info) {
+                    const event = info.event;
+                    const props = event.extendedProps;
+
+                    document.getElementById('editTitle').value = event.title;
+
+                    if (event.start) {
+                        const d = new Date(event.start);
+                        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                        document.getElementById('editDate').value = d.toISOString().slice(0, 16);
+                    }
+
+                    document.getElementById('editChannel').value = props.source_channel || '';
+                    document.getElementById('editStatus').value = props.status || 'pending';
+                    document.getElementById('editDescription').value = props.description || '';
+
+                    const editForm = document.getElementById('editEventForm');
+                    editForm.action = `/events/update/${event.id}`;
+                    editForm.dataset.eventId = event.id;
+
+                    const modal = new bootstrap.Modal(document.getElementById('editEventModal'));
+                    modal.show();
+                }
+            });
+            calendar.render();
+
+            const handleFormSubmit = async (e, form) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        const modalEl = form.closest('.modal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        modal.hide();
+                        form.reset();
+                        calendar.refetchEvents();
+                    } else {
+                        alert('Error saving event');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error saving event');
+                }
+            };
+
+            document.getElementById('addEventForm').addEventListener('submit', function (e) {
+                handleFormSubmit(e, this);
+            });
+
+            document.getElementById('editEventForm').addEventListener('submit', function (e) {
+                handleFormSubmit(e, this);
+            });
+
+            document.getElementById('deleteEventBtn').addEventListener('click', async function () {
+                if (!confirm('Are you sure you want to delete this event?')) return;
+
+                const form = document.getElementById('editEventForm');
+                const eventId = form.dataset.eventId;
+
+                try {
+                    const response = await fetch(`/events/delete/${eventId}`, {
+                        method: 'POST'
+                    });
+
+                    if (response.ok) {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('editEventModal'));
+                        modal.hide();
+                        calendar.refetchEvents();
+                    } else {
+                        alert('Error deleting event');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error deleting event');
+                }
+            });
+        });
+    </script>
+
+    <style>
+        /* FullCalendar Overrides for Dark Theme */
+        .fc {
+            color: var(--text-primary);
+            min-height: 800px;
+        }
+
+        .fc-theme-bootstrap5 .fc-list-day-cushion {
+            background-color: var(--slate-medium);
+        }
+
+        .fc .fc-button-primary {
+            background-color: transparent;
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+
+        .fc .fc-button-primary:hover {
+            background-color: var(--neon-cyan);
+            color: var(--void-dark);
+            border-color: var(--neon-cyan);
+        }
+
+        .fc .fc-button-primary:disabled {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: transparent;
+        }
+
+        .fc-daygrid-day-number {
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .fc-col-header-cell-cushion {
+            color: var(--neon-purple);
+            text-decoration: none;
+        }
+
+        .fc-theme-standard td,
+        .fc-theme-standard th {
+            border-color: var(--glass-border);
+        }
+    </style>
+    </body>
+
+    </html>
