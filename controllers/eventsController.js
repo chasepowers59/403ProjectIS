@@ -18,9 +18,9 @@ const eventsController = {
             startDate.setHours(0, 0, 0, 0);
 
             let query = knex('events')
-                .where('date', '>=', startDate.toISOString().split('T')[0])
-                .orderBy('date', 'asc')
-                .orderBy('start_time', 'asc');
+                .select('*', 'start_date as start_time')
+                .where('start_date', '>=', startDate)
+                .orderBy('start_date', 'asc');
 
             if (channel) {
                 query = query.where('source_channel', channel);
@@ -48,8 +48,8 @@ const eventsController = {
             const today = new Date().toISOString().split('T')[0];
 
             const events = await knex('events')
-                .where('date', '>=', today)
-                .orderBy('date', 'asc');
+                .where('start_date', '>=', today)
+                .orderBy('start_date', 'asc');
 
             // Generate ICS content manually to avoid extra dependencies
             let icsContent = [
@@ -62,30 +62,22 @@ const eventsController = {
 
             events.forEach(event => {
                 // Format date: YYYYMMDD
-                const dateStr = event.date.toISOString().replace(/-/g, '').split('T')[0];
+                const dateObj = new Date(event.start_date);
+                const dateStr = dateObj.toISOString().replace(/-/g, '').split('T')[0];
+                const timeStr = dateObj.toISOString().split('T')[1].replace(/:/g, '').substring(0, 6);
 
-                // Format time if available, otherwise all-day
-                let dtStart = `;VALUE=DATE:${dateStr}`;
-                let dtEnd = `;VALUE=DATE:${dateStr}`; // For single day events, end is same day (technically next day for all-day but this works for most clients)
+                // Format time
+                let dtStart = `:${dateStr}T${timeStr}`;
 
-                if (event.start_time) {
-                    const [hh, mm] = event.start_time.split(':');
-                    dtStart = `:${dateStr}T${hh}${mm}00`;
+                // Default end time (1 hour later)
+                const endDateObj = new Date(dateObj.getTime() + 60 * 60 * 1000);
+                const endDateStr = endDateObj.toISOString().replace(/-/g, '').split('T')[0];
+                const endTimeStr = endDateObj.toISOString().split('T')[1].replace(/:/g, '').substring(0, 6);
+                let dtEnd = `:${endDateStr}T${endTimeStr}`;
 
-                    if (event.end_time) {
-                        const [ehh, emm] = event.end_time.split(':');
-                        dtEnd = `:${dateStr}T${ehh}${emm}00`;
-                    } else {
-                        // Default to 1 hour duration
-                        let endH = parseInt(hh) + 1;
-                        dtEnd = `:${dateStr}T${endH.toString().padStart(2, '0')}${mm}00`;
-                    }
-                } else {
-                    // All day event - end date should be next day
-                    const nextDay = new Date(event.date);
-                    nextDay.setDate(nextDay.getDate() + 1);
-                    const nextDayStr = nextDay.toISOString().replace(/-/g, '').split('T')[0];
-                    dtEnd = `;VALUE=DATE:${nextDayStr}`;
+                if (event.end_time) {
+                    // If end_time existed (it doesn't in DB currently), we would use it.
+                    // For now, default to 1 hour.
                 }
 
                 const description = event.description ? event.description.replace(/\n/g, '\\n') : '';
@@ -126,8 +118,7 @@ const eventsController = {
         try {
             await knex('events').insert({
                 title,
-                start_time,
-                end_time: end_time || null,
+                start_date: start_time,
                 source_channel,
                 description: description || '',
                 status: 'pending'
@@ -149,8 +140,7 @@ const eventsController = {
         try {
             await knex('events').where({ id: id }).update({
                 title,
-                start_time,
-                end_time: end_time || null,
+                start_date: start_time,
                 description: description || '',
                 source_channel: source_channel || '',
                 status: status || 'pending'

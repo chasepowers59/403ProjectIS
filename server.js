@@ -109,7 +109,7 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
     try {
         console.log('[Dashboard] Loading dashboard...');
         const eventsRaw = await knex('events')
-            .distinct('id', 'title', 'start_time', 'source_channel', 'status');
+            .distinct('id', 'title', 'start_date as start_time', 'source_channel', 'status');
 
         // Normalize channel names (trim whitespace) to ensure correct sorting/grouping
         eventsRaw.forEach(event => {
