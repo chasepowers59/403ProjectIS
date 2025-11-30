@@ -47,6 +47,37 @@ app.post('/analyzeSlackDump', isAuthenticated, slackController.analyzeSlackDump)
 app.use('/events', eventsRoutes);
 app.use('/calendar', eventsRoutes);
 
+// Registration Routes
+app.get('/register', (req, res) => {
+    res.render('register', { error: null });
+});
+
+app.post('/register', async (req, res) => {
+    const { name, email, password } = req.body;
+    try {
+        const existingUser = await knex('users').where({ email }).first();
+        if (existingUser) {
+            return res.render('register', { error: 'User already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const [userId] = await knex('users').insert({
+            name,
+            email,
+            password: hashedPassword
+        }).returning('id'); // For Postgres
+
+        // Auto-login
+        const newUser = await knex('users').where({ id: userId.id || userId }).first();
+        req.session.user = newUser;
+        res.redirect('/dashboard');
+
+    } catch (err) {
+        console.error(err);
+        res.render('register', { error: 'An error occurred during registration' });
+    }
+});
+
 // Login Routes
 app.get('/login', (req, res) => {
     res.render('login', { error: null });

@@ -1,0 +1,109 @@
+<%- include('partials/header') %>
+    <div class="container-fluid vh-100 p-0 overflow-hidden">
+        <div class="row h-100 g-0">
+
+            <!-- Left Side: Registration Form -->
+            <div class="col-md-6 d-flex flex-column justify-content-center align-items-center position-relative"
+                style="background: var(--bg-dark); z-index: 2;">
+
+                <!-- Small Brand Top Left -->
+                <div class="position-absolute top-0 start-0 p-5">
+                    <div class="d-flex align-items-center gap-2">
+                        <span
+                            style="font-size: 1.1rem; font-weight: 700; letter-spacing: 1.5px; color: var(--text-secondary);">BYU
+                            INFORMATION SYSTEMS</span>
+                    </div>
+                </div>
+
+                <div style="width: 100%; max-width: 400px; padding: 2rem;">
+                    <h1 class="text-white fw-bold mb-2" style="font-size: 3rem;">Create Account.</h1>
+                    <p class="text-muted-antigravity mb-5">Please enter your details to create an account.</p>
+
+                    <% if (error) { %>
+                        <div class="alert alert-danger"
+                            style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #ff6b6b; border-radius: 10px; padding: 0.75rem; margin-bottom: 1.5rem;">
+                            <%= error %>
+                        </div>
+                        <% } %>
+
+                            <form action="/register" method="POST">
+                                <div class="mb-3">
+                                    <input type="text" name="name" class="form-control-antigravity form-control-lg"
+                                        required placeholder="Full Name"
+                                        style="height: 55px; border-radius: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                </div>
+
+                                <div class="mb-3">
+                                    <input type="email" name="email" class="form-control-antigravity form-control-lg"
+                                        required placeholder="Email Address"
+                                        style="height: 55px; border-radius: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                </div>
+
+                                <div class="mb-4">
+                                    <input type="password" name="password"
+                                        class="form-control-antigravity form-control-lg" required placeholder="Password"
+                                        style="height: 55px; border-radius: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                </div>
+
+                                <button type="submit" class="btn w-100 py-3 fw-bold text-white mb-3"
+                                    style="border-radius: 12px; background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%); border: none; font-size: 1rem; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);">
+                                    Sign Up
+                                </button>
+                            </form>
+
+                            <div class="text-center mt-4">
+                                <span class="text-muted-antigravity">Already have an account? <a href="/login"
+                                        class="text-decoration-none fw-bold text-white">Log In</a></span>
+                            </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Visual/Gradient -->
+            <div class="col-md-6 d-none d-md-flex align-items-center justify-content-center position-relative overflow-hidden"
+                style="background: #0f172a;">
+
+                <!-- Animated Gradient Background -->
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                            background: radial-gradient(circle at 10% 20%, rgb(69, 88, 255) 0%, rgb(60, 29, 255) 90%); 
+                            opacity: 0.8; z-index: 1;"></div>
+                <div
+                    style="position: absolute; top: -20%; right: -20%; width: 80%; height: 80%; 
+                            background: radial-gradient(circle, var(--neon-cyan) 0%, transparent 70%); 
+                            filter: blur(80px); opacity: 0.4; z-index: 2; animation: floatSlow 10s infinite alternate;">
+                </div>
+                <div
+                    style="position: absolute; bottom: -20%; left: -20%; width: 80%; height: 80%; 
+                            background: radial-gradient(circle, var(--neon-pink) 0%, transparent 70%); 
+                            filter: blur(80px); opacity: 0.4; z-index: 2; animation: floatSlow 12s infinite alternate-reverse;">
+                </div>
+
+                <!-- Content -->
+                <div class="text-center position-relative" style="z-index: 3; max-width: 80%;">
+                    <img src="/images/team_logo.jpg" alt="Team Logo" class="mb-5 shadow-lg"
+                        style="width: 450px; height: auto; border-radius: 30px; transform: rotate(-2deg); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+
+                    <div class="glass-card p-4 mx-auto"
+                        style="max-width: 600px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <h4 class="text-white fw-light mb-3" style="font-style: italic;">"Join the team and start
+                            collaborating."</h4>
+                        <div class="d-flex align-items-center justify-content-center gap-3">
+                            <div
+                                style="width: 30px; height: 30px; border-radius: 50%; background: var(--neon-cyan); display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">
+                                🏢
+                            </div>
+                            <div class="text-start">
+                                <h6 class="text-white mb-0" style="font-size: 0.9rem;">Department of Information Systems
+                                </h6>
+                                <small class="text-white-50" style="font-size: 0.75rem;">Brigham Young
+                                    University</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    </body>
+
+    </html>
