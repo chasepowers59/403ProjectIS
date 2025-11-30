@@ -49,11 +49,13 @@ Scroll down to the **Environment Variables** section and add the following keys.
 | `OPENAI_API_KEY` | *sk-...* | Your OpenAI API Key. |
 | `SESSION_SECRET` | *random_string* | A long random string for securing sessions. |
 | `SLACKDUMP_CMD` | `./tools/linux/slackdump` | **CRITICAL for Sync**: See note below. |
+| `SLACK_TOKEN` | *xoxp-...* | **REQUIRED**: User token for Slack authentication. |
 
 > **IMPORTANT: The Sync Feature & Linux**
 > The "Sync" button uses `slackdump`, which is a command-line tool. The version in your project is likely for Windows (`slackdump.exe`).
 >
 > *   **If deploying to Linux (Render/Heroku):** You must download the **Linux** version of `slackdump` from its repository, place it in your project (e.g., `tools/linux/slackdump`), commit it, and set `SLACKDUMP_CMD` to point to it.
+> *   **Authentication:** You MUST set the `SLACK_TOKEN` environment variable. `slackdump` cannot ask for login on a server. Use a User Token (starts with `xoxp-`) or Bot Token (starts with `xoxb-`) that has permission to view channels and history.
 > *   **If you skip this:** The "Sync" button will fail on the live site. You can still use the app to view and manage events, but you won't be able to pull new data from Slack directly on the server.
 
 ## 4. Database Migration
