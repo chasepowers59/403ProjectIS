@@ -1,7 +1,8 @@
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const knex = require('knex')(require('../database/knexfile').development);
+const environment = process.env.NODE_ENV || 'development';
+const knex = require('knex')(require('../database/knexfile')[environment]);
 const chrono = require('chrono-node');
 const AdmZip = require('adm-zip');
 require('dotenv').config();
