@@ -80,3 +80,23 @@ After your app is deployed, the database will be empty. You need to create the t
 1.  Wait for the build to finish.
 2.  Click the URL provided by Render (e.g., `https://slack-events-app.onrender.com`).
 3.  Log in and verify the Dashboard and Calendar load correctly.
+
+## 6. Admin User Setup
+
+To log in, you need an admin user. We have included a script to create one.
+
+**Option A: Run via Render Shell (Recommended)**
+1.  In your Render Dashboard, go to your **Web Service**.
+2.  Click the **Shell** tab.
+3.  Run: `npm run seed`
+4.  This will create the user:
+    *   **Email**: `admin@example.com`
+    *   **Password**: `password`
+
+**Option B: Run locally against Production DB**
+1.  Ensure your `.env.production` has the external DB connection string.
+2.  Run:
+    ```bash
+    $env:NODE_ENV="production"; npm run seed
+    ```
+
