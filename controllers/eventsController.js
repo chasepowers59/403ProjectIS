@@ -1,4 +1,6 @@
-const knex = require('knex')(require('../database/knexfile').development);
+require('dotenv').config();
+const environment = process.env.NODE_ENV || 'development';
+const knex = require('knex')(require('../database/knexfile')[environment]);
 
 /**
  * Events Controller
@@ -18,9 +20,9 @@ const eventsController = {
             startDate.setHours(0, 0, 0, 0);
 
             let query = knex('events')
-                .select('*', 'start_date as start_time')
-                .where('start_date', '>=', startDate)
-                .orderBy('start_date', 'asc');
+                .select('*')
+                .where('start_time', '>=', startDate)
+                .orderBy('start_time', 'asc');
 
             if (channel) {
                 query = query.where('source_channel', channel);
@@ -48,8 +50,8 @@ const eventsController = {
             const today = new Date().toISOString().split('T')[0];
 
             const events = await knex('events')
-                .where('start_date', '>=', today)
-                .orderBy('start_date', 'asc');
+                .where('start_time', '>=', today)
+                .orderBy('start_time', 'asc');
 
             // Generate ICS content manually to avoid extra dependencies
             let icsContent = [
@@ -62,7 +64,7 @@ const eventsController = {
 
             events.forEach(event => {
                 // Format date: YYYYMMDD
-                const dateObj = new Date(event.start_date);
+                const dateObj = new Date(event.start_time);
                 const dateStr = dateObj.toISOString().replace(/-/g, '').split('T')[0];
                 const timeStr = dateObj.toISOString().split('T')[1].replace(/:/g, '').substring(0, 6);
 
@@ -118,7 +120,7 @@ const eventsController = {
         try {
             await knex('events').insert({
                 title,
-                start_date: start_time,
+                start_time: start_time,
                 source_channel,
                 description: description || '',
                 status: 'pending'
@@ -140,7 +142,7 @@ const eventsController = {
         try {
             await knex('events').where({ id: id }).update({
                 title,
-                start_date: start_time,
+                start_time: start_time,
                 description: description || '',
                 source_channel: source_channel || '',
                 status: status || 'pending'

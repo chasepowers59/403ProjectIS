@@ -1,7 +1,9 @@
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const AdmZip = require('adm-zip');
-const knex = require('knex')(require('../database/knexfile').development);
+const environment = process.env.NODE_ENV || 'development';
+const knex = require('knex')(require('../database/knexfile')[environment]);
 const slackParser = require('../services/slackParser');
 const aiEventExtractor = require('../services/aiEventExtractor');
 

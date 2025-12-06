@@ -7,7 +7,9 @@ const chrono = require('chrono-node');
 const AdmZip = require('adm-zip');
 require('dotenv').config();
 
-const SLACKDUMP_CMD = process.env.SLACKDUMP_CMD || '.\\tools\\slackdump.exe';
+// Cross-platform SLACKDUMP command - defaults to Linux for production, Windows for local dev
+const SLACKDUMP_CMD = process.env.SLACKDUMP_CMD || 
+    (process.platform === 'win32' ? '.\\tools\\slackdump.exe' : './tools/linux/slackdump');
 const EXPORT_DIR = process.env.EXPORT_DIR || './slack-data';
 
 const slackService = {

@@ -61,14 +61,14 @@ app.post('/register', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const [userId] = await knex('users').insert({
+        await knex('users').insert({
             name,
             email,
             password: hashedPassword
-        }).returning('id'); // For Postgres
+        });
 
-        // Auto-login
-        const newUser = await knex('users').where({ id: userId.id || userId }).first();
+        // Auto-login - query by email since it's unique
+        const newUser = await knex('users').where({ email }).first();
         req.session.user = newUser;
         res.redirect('/dashboard');
 
@@ -109,7 +109,7 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
     try {
         console.log('[Dashboard] Loading dashboard...');
         const eventsRaw = await knex('events')
-            .distinct('id', 'title', 'start_date as start_time', 'source_channel', 'status');
+            .distinct('id', 'title', 'start_time', 'source_channel', 'status');
 
         // Normalize channel names (trim whitespace) to ensure correct sorting/grouping
         eventsRaw.forEach(event => {
@@ -164,6 +164,7 @@ app.get('/search', isAuthenticated, async (req, res) => {
     const query = req.query.q;
     try {
         const events = await knex('events')
+            .select('id', 'title', 'start_time', 'source_channel', 'status')
             .where('title', 'ilike', `%${query}%`)
             .orWhere('source_channel', 'ilike', `%${query}%`)
             .orderBy('start_time', 'asc');
@@ -181,5 +182,10 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    const env = process.env.NODE_ENV || 'development';
+    if (env === 'production') {
+        console.log(`Server running on port ${PORT} (production)`);
+    } else {
+        console.log(`Server running on http://localhost:${PORT} (${env})`);
+    }
 });
